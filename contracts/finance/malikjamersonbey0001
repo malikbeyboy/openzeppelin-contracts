@@ -1,0 +1,43 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "https://github.com/Open Zeppelin/openzeppelin-contracts/blob/master/contracts/utils/math/SafeMath.sol";
+
+contract AssetBackedSecurity {
+    using SafeMath for uint256;
+
+    // Details of the issuer
+    address public issuer;
+    string public issuerName = "Malik A. Jamerson Bey, TTEE";
+    
+    // Details of the offering
+    uint256 public totalValue = 15000000000; // in USD
+    uint256 public noteValue = 100000000; // in USD per note
+    uint256 public numberOfNotes = 150;
+    uint256 public term = 5; // in years
+    uint256 public annualPercentageRate = 18; // in percent
+
+    // Mapping from holder address to their note balance
+    mapping(address => uint256) private _balances;
+
+    // Event emitted when notes are purchased
+    event NotesPurchased(address indexed purchaser, uint256 amount);
+
+    constructor() {
+        issuer = msg.sender;
+    }
+
+    function purchaseNotes(uint256 amount) public payable {
+        require(msg.value >= noteValue.mul(amount), "Insufficient funds sent for the amount of notes requested");
+        require(numberOfNotes >= amount, "Not enough notes available for purchase");
+
+        _balances[msg.sender] = _balances[msg.sender].add(amount);
+        numberOfNotes = numberOfNotes.sub(amount);
+
+        emit NotesPurchased(msg.sender, amount);
+    }
+
+    function balanceOf(address account) public view returns (uint256) {
+        return _balances[account];
+    }
+}
